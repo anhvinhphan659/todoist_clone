@@ -1,10 +1,15 @@
 import 'package:bubble_bottom_bar/bubble_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:todoist_clone/components/task_item.dart';
 import 'package:todoist_clone/screens/menu_screen.dart';
 import 'package:todoist_clone/screens/new_task_screen.dart';
 import 'package:todoist_clone/screens/notification_screen.dart';
 import 'package:todoist_clone/screens/search_screen.dart';
+import 'package:todoist_clone/utils/data_handler.dart';
+import 'package:todoist_clone/utils/todo_styles.dart';
+
+import '../models/task.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -14,31 +19,109 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  List<Task> tasks = [];
+  bool isTaskgenetated = false;
+  GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    // DataHandler.getTasks().then((value) {
+    //   isTaskgenetated = true;
+    //   setState(() {
+    //     tasks = value;
+    //   });
+    // });
+  }
+
   @override
   Widget build(BuildContext context) {
+    // if (isTaskgenetated) {
+    //   ("Task home");
+    //   print(tasks);
+    // }
     return Scaffold(
-      body: Container(
-        child: Center(
-          child: TextButton(
-            child: Text('Show model'),
-            onPressed: () {
-              displayBottomModal(
-                  context,
-                  Container(
-                    // height: 1800,
-                    color: Colors.yellow,
-                  ));
-            },
-          ),
+      appBar: AppBar(
+        elevation: 0.0,
+        backgroundColor: Colors.white,
+        title: Text(
+          'Today',
+          style: ToDoStyles.titleHeader,
         ),
+        actions: [
+          IconButton(
+              onPressed: () {},
+              icon: const Icon(
+                Icons.more_vert,
+                color: Colors.grey,
+              ))
+        ],
       ),
+      body: FutureBuilder(
+          future: DataHandler.getTasks(),
+          builder: (BuildContext context, AsyncSnapshot<List<Task>> snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.none:
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              case ConnectionState.waiting:
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              case ConnectionState.active:
+                {
+                  return const Center(
+                    child: Text(''),
+                  );
+                }
+              case ConnectionState.done:
+                break;
+            }
+            if (snapshot.hasData) {
+              tasks = snapshot.data!;
+              print(tasks);
+            }
+            return Container(
+                color: Colors.white,
+                // padding: EdgeInsets.all(16.0),cd
+                child: ListView(
+                  children: [
+                    ...List.generate(
+                      tasks.length,
+                      (index) => TaskItem(
+                        task: tasks[index],
+                        onFinished: () {
+                          setState(() {
+                            tasks.removeAt(index);
+                          });
+                        },
+                      ),
+                    ),
+                    Divider(),
+                    // TaskItem(
+                    //   task: Task(taskDateTime: DateTime.now()),
+                    // ),
+                    DateTitle(titles: ['1 Nov', 'Today']),
+                    Divider(),
+                  ],
+                ));
+          }),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showMaterialModalBottomSheet(
+        onPressed: () async {
+          final res = await showMaterialModalBottomSheet(
               expand: false,
               elevation: 4.0,
               context: context,
-              builder: (context) => NewTaskScreen());
+              builder: (context) {
+                return NewTaskScreen();
+              });
+          if (res != null) {
+            setState(() {
+              tasks.add(res as Task);
+            });
+          }
         },
         child: Icon(Icons.add),
         backgroundColor: Colors.red,
@@ -105,6 +188,29 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget DateTitle({
+    List<String> titles = const ["Overdue"],
+    bool isOverDue = false,
+  }) {
+    String title = titles[0];
+    for (int i = 1; i < titles.length; i++) {
+      title += ' • ${titles[i]}';
+    }
+
+    isOverDue = titles.length == 1;
+    return ListTile(
+      title: Text(title),
+      trailing: isOverDue
+          ? TextButton(
+              onPressed: () {},
+              child: const Text(
+                'Reschedule',
+                style: TextStyle(color: Colors.red),
+              ))
+          : const SizedBox(),
     );
   }
 
