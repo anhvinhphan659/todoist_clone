@@ -217,6 +217,8 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                     alarmDateTime =
                         selectedDate!.subtract(Duration(minutes: 10));
                     await NotificationHandler.registerScheduledNotification(
+                        title: task.taskName,
+                        body: task.description,
                         scheduledTime: alarmDateTime!);
                   }
                   Navigator.of(context).pop(task);
