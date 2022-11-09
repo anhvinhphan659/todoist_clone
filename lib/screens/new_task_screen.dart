@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:todoist_clone/models/task.dart';
 import 'package:todoist_clone/utils/data_handler.dart';
+import 'package:todoist_clone/utils/notification_handler.dart';
 import 'package:todoist_clone/utils/todo_styles.dart';
 
 class NewTaskScreen extends StatefulWidget {
@@ -19,7 +20,9 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
   bool isTimeChosen = false;
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
-  // bool isDateChosen = false;
+  bool isAlarmSet = false;
+  DateTime? alarmDateTime;
+
   @override
   Widget build(BuildContext context) {
     final df = DateFormat('dd/MM/yyyy');
@@ -58,51 +61,79 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
               ),
             ),
           ),
-          Wrap(
-            children: [
-              TextButton(
-                  onPressed: () async {
-                    if (isTimeChosen) {
-                      setState(() {
-                        isTimeChosen = false;
-                      });
-                      return;
-                    }
-                    selectedTime = await showTimePicker(
-                        context: context, initialTime: TimeOfDay.now());
-                    if (selectedTime != null) {
-                      // print(tod.toString());
-                      setState(() {
-                        isTimeChosen = true;
-                      });
-                    }
-                  },
-                  child: Text(isTimeChosen ? "Remove time" : 'Add time')),
-            ],
-          ),
+          // Wrap(
+          //   children: [
+          //     TextButton(
+          //         onPressed: () async {
+          //           if (isTimeChosen) {
+          //             setState(() {
+          //               isTimeChosen = false;
+          //             });
+          //             return;
+          //           }
+          //           selectedTime = await showTimePicker(
+          //               context: context, initialTime: TimeOfDay.now());
+          //           if (selectedTime != null) {
+          //             // print(tod.toString());
+          //             setState(() {
+          //               isTimeChosen = true;
+          //             });
+          //           }
+          //         },
+          //         child: Text(isTimeChosen ? "Remove time" : 'Add time')),
+          //   ],
+          // ),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              isTimeChosen
-                  ? PickedCard(
-                      content: isTimeChosen
-                          ? selectedTime!.format(context)
-                          : "00:00",
-                      backgroundColor: Colors.orange.shade200,
-                    )
-                  : const SizedBox(),
-              PickedCard(
-                content: df.format(selectedDate ?? DateTime.now()),
-                backgroundColor: Colors.blue.shade200,
-                onTapAction: () async {
-                  selectedDate = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime(1950),
-                      lastDate: DateTime(2100));
-
-                  print("Dtaae :" + selectedDate.toString());
-                },
+              Row(
+                children: [
+                  PickedCard(
+                    content: selectedTime != null
+                        ? selectedTime!.format(context)
+                        : "00:00",
+                    backgroundColor: Colors.orange.shade200,
+                    onTapAction: () async {
+                      selectedTime = await showTimePicker(
+                          context: context, initialTime: TimeOfDay.now());
+                    },
+                  ),
+                  PickedCard(
+                    content: df.format(selectedDate ?? DateTime.now()),
+                    backgroundColor: Colors.blue.shade200,
+                    onTapAction: () async {
+                      selectedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(1950),
+                          lastDate: DateTime(2100));
+                    },
+                  ),
+                ],
               ),
+              // IconButton(
+              //     onPressed: () async {
+              //       print('Hello world');
+              //       var t = await showTimePicker(
+              //           context: context, initialTime: TimeOfDay.now());
+              //       print(t);
+              //       var d = await showDatePicker(
+              //           context: context,
+              //           initialDate: DateTime.now(),
+              //           firstDate: DateTime(1950),
+              //           lastDate: DateTime(2100));
+              //       print(d);
+              //     },
+              //     icon: Icon(Icons.alarm))
+              // TextButton(
+              //     onPressed: () {
+              //       NotificationHandler.registerScheduledNotification(
+              //           title: 'Test notification',
+              //           body: 'Hello hello',
+              //           scheduledTime:
+              //               DateTime.now().add(const Duration(seconds: 10)));
+              //     },
+              //     child: Text('Set alarm'))
             ],
           ),
           Row(
@@ -110,26 +141,84 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.tag),
-                  Icon(Icons.flag),
-                  Icon(Icons.alarm)
+                  IconButton(
+                    onPressed: () async {
+                      print('Hello world');
+                      var t = await showTimePicker(
+                          context: context, initialTime: TimeOfDay.now());
+
+                      var d = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(1950),
+                          lastDate: DateTime(2100));
+                      if (t == null && d == null) {
+                        print('Time and day not selected');
+                      } else {
+                        t = t ?? const TimeOfDay(hour: 0, minute: 0);
+                        d = d ?? DateTime.now();
+                        alarmDateTime =
+                            DateTime(d.year, d.month, d.day, t.hour, t.minute);
+                      }
+                      setState(() {
+                        isAlarmSet = true;
+                        print(alarmDateTime);
+                      });
+                    },
+                    icon: isAlarmSet
+                        ? Icon(
+                            Icons.alarm_on,
+                            color: Colors.green,
+                          )
+                        : Icon(
+                            Icons.alarm,
+                          ),
+                  ),
+                  Text(alarmDateTime != null
+                      ? DateFormat('dd/MM/yyyy kk:mm').format(alarmDateTime!)
+                      : ""),
                 ],
               ),
+              TextButton(
+                  onPressed: () {
+                    setState(() {
+                      isAlarmSet = !isAlarmSet;
+                    });
+                  },
+                  child: Text(isAlarmSet ? 'Remove Notification' : 'Set Alarm'))
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
               IconButton(
                 onPressed: () async {
                   print('Pop context');
-                  DateTime taskDT = selectedDate ?? DateTime.now();
-                  if (isTimeChosen) {
-                    taskDT = DateTime(taskDT.year, taskDT.month, taskDT.day,
-                        selectedTime!.hour, selectedDate!.minute, 0, 0, 0);
-                  }
+                  DateTime taskDT = DateTime.now();
+                  selectedDate = selectedDate ?? DateTime.now();
+                  selectedTime =
+                      selectedTime ?? const TimeOfDay(hour: 0, minute: 0);
+                  selectedDate = DateTime(
+                      selectedDate!.year,
+                      selectedDate!.month,
+                      selectedDate!.day,
+                      selectedTime!.hour,
+                      selectedTime!.minute);
                   var task = Task(
                       taskName: taskTEC.text,
                       description: descriptionTEC.text,
-                      taskDateTime: taskDT);
+                      taskDateTime: selectedDate);
                   int id = await DataHandler.insertTask(task);
+
                   print("New taskId: " + id.toString());
                   task.idTask = id;
+                  //set up notification
+                  if (isAlarmSet) {
+                    alarmDateTime =
+                        selectedDate!.subtract(Duration(minutes: 10));
+                    await NotificationHandler.registerScheduledNotification(
+                        scheduledTime: alarmDateTime!);
+                  }
                   Navigator.of(context).pop(task);
                 },
                 icon: Container(

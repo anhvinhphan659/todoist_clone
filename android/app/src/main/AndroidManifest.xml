@@ -1,9 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.todoist_clone">
+    <!-- Add below permission inside 'manifest' tag -->
+     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    
+   
    <application
         android:label="todoist_clone"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+         <service
+            android:name="com.dexterous.flutterlocalnotifications.ForegroundService"        
+            android:exported="false"
+            android:stopWithTask="false"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

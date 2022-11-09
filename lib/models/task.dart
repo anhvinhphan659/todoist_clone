@@ -21,4 +21,14 @@ class Task {
   String toString() {
     return "Task{idTask:$idTask, description:$description, taskDateTime:$taskDateTime}";
   }
+
+  int getTaskMode() {
+    int ret = 1;
+    if (DateTime.now().compareTo(taskDateTime!) > 0) {
+      ret = 0;
+    } else {
+      if (DateTime.now().day < taskDateTime!.day) ret = 2;
+    }
+    return ret;
+  }
 }

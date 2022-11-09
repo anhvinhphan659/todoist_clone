@@ -43,6 +43,9 @@ dependencies:
   intl: ^0.17.0
   sqflite:
   path:
+  timezone:
+  rxdart:
+  flutter_colorpicker: ^1.0.3
 
 dev_dependencies:
   flutter_test:

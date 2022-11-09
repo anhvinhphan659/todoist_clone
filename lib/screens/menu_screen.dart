@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:todoist_clone/screens/home_screen.dart';
 import 'package:todoist_clone/utils/todo_styles.dart';
 
 class MenuScreen extends StatefulWidget {
@@ -12,71 +13,86 @@ class _MenuScreenState extends State<MenuScreen> {
   bool isExpand = false;
   @override
   Widget build(BuildContext context) {
-    String name = 'VINHPHAN659';
-
     return Container(
       decoration: ToDoStyles.commonDecoration,
-      margin: const EdgeInsets.only(top: 25.0),
+      // margin: const EdgeInsets.only(top: 25.0),
       child: Column(
         children: [
+          // Container(
+          //   padding: const EdgeInsets.all(16),
+          //   child: Row(
+          //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //     children: [
+          //       Row(
+          //         children: [
+          //           Padding(
+          //             padding: const EdgeInsets.only(right: 16),
+          //             child: CircleAvatar(
+          //               backgroundColor: Colors.blue,
+          //               radius: 20,
+          //               child: Text(
+          //                 name.substring(0, 1).toUpperCase(),
+          //                 style: const TextStyle(
+          //                     fontWeight: FontWeight.bold,
+          //                     fontSize: 18,
+          //                     color: Colors.white),
+          //               ),
+          //             ),
+          //           ),
+          //           Column(
+          //             crossAxisAlignment: CrossAxisAlignment.start,
+          //             children: [
+          //               Text(
+          //                 name,
+          //                 style: ToDoStyles.titleHeader,
+          //               ),
+          //               Row(
+          //                 children: [
+          //                   Container(
+          //                     decoration: BoxDecoration(
+          //                         shape: BoxShape.circle,
+          //                         border: Border.all(color: Colors.grey)),
+          //                     padding: EdgeInsets.all(2.0),
+          //                     margin: EdgeInsets.only(right: 4.0),
+          //                     child: const Icon(
+          //                       Icons.trending_up,
+          //                       color: Colors.grey,
+          //                       size: 13,
+          //                     ),
+          //                   ),
+          //                   Text(
+          //                     '0/5',
+          //                     style: ToDoStyles.paraText
+          //                         .copyWith(color: Colors.grey),
+          //                   )
+          //                 ],
+          //               )
+          //             ],
+          //           )
+          //         ],
+          //       ),
+          //       Icon(Icons.settings_outlined)
+          //     ],
+          //   ),
+          // ),
+
+          // const Divider(),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.only(top: 25, bottom: 8.0, right: 16.0),
+            color: Colors.red,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 16),
-                      child: CircleAvatar(
-                        backgroundColor: Colors.blue,
-                        radius: 20,
-                        child: Text(
-                          name.substring(0, 1).toUpperCase(),
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.white),
-                        ),
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          name,
-                          style: ToDoStyles.titleHeader,
-                        ),
-                        Row(
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.grey)),
-                              padding: EdgeInsets.all(2.0),
-                              margin: EdgeInsets.only(right: 4.0),
-                              child: const Icon(
-                                Icons.trending_up,
-                                color: Colors.grey,
-                                size: 13,
-                              ),
-                            ),
-                            Text(
-                              '0/5',
-                              style: ToDoStyles.paraText
-                                  .copyWith(color: Colors.grey),
-                            )
-                          ],
-                        )
-                      ],
-                    )
-                  ],
-                ),
-                Icon(Icons.settings_outlined)
+                Text(
+                  "TO DO MENU",
+                  style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold),
+                )
               ],
             ),
           ),
-          const Divider(),
           ListTile(
             leading: const Icon(
               Icons.move_to_inbox,
@@ -86,8 +102,15 @@ class _MenuScreenState extends State<MenuScreen> {
               'All',
               style: ToDoStyles.paraText,
             ),
-            trailing: Text('5'),
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const HomeScreen(
+                    mode: HomeScreen.ALL_TASK_MODE,
+                  ),
+                ),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(
@@ -98,8 +121,15 @@ class _MenuScreenState extends State<MenuScreen> {
               'Today',
               style: ToDoStyles.paraText,
             ),
-            trailing: Text('5'),
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const HomeScreen(
+                    mode: HomeScreen.TODAY_TASK_MODE,
+                  ),
+                ),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(
@@ -111,7 +141,15 @@ class _MenuScreenState extends State<MenuScreen> {
               style: ToDoStyles.paraText,
             ),
             trailing: Text(''),
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const HomeScreen(
+                    mode: HomeScreen.UPCOMING_TASK_MODE,
+                  ),
+                ),
+              );
+            },
           ),
           // ListTile(
           //   leading: const Icon(

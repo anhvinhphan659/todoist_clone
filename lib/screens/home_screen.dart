@@ -4,36 +4,41 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:todoist_clone/components/task_item.dart';
 import 'package:todoist_clone/screens/menu_screen.dart';
 import 'package:todoist_clone/screens/new_task_screen.dart';
-import 'package:todoist_clone/screens/notification_screen.dart';
-import 'package:todoist_clone/screens/search_screen.dart';
+
 import 'package:todoist_clone/utils/data_handler.dart';
+import 'package:todoist_clone/utils/notification_handler.dart';
 import 'package:todoist_clone/utils/todo_styles.dart';
 
 import '../models/task.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  final int mode;
+  // ignore: constant_identifier_names
+  static const int ALL_TASK_MODE = 0;
+  // ignore: constant_identifier_names
+  static const int TODAY_TASK_MODE = 1;
+  // ignore: constant_identifier_names
+  static const int UPCOMING_TASK_MODE = 2;
+  const HomeScreen({this.mode = ALL_TASK_MODE, Key? key}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Task> tasks = [];
-  bool isTaskgenetated = false;
-  GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
-      GlobalKey<RefreshIndicatorState>();
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    // DataHandler.getTasks().then((value) {
-    //   isTaskgenetated = true;
-    //   setState(() {
-    //     tasks = value;
-    //   });
-    // });
+    NotificationHandler.init();
   }
+
+  String searchValue = "";
+  List<Task> tasks = [];
+  var overdues = [];
+  var todays = [];
+  var upcomings = [];
+  bool isTaskgenetated = false;
+  TextEditingController txtController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -42,22 +47,22 @@ class _HomeScreenState extends State<HomeScreen> {
     //   print(tasks);
     // }
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0.0,
-        backgroundColor: Colors.white,
-        title: Text(
-          'Today',
-          style: ToDoStyles.titleHeader,
-        ),
-        actions: [
-          IconButton(
-              onPressed: () {},
-              icon: const Icon(
-                Icons.more_vert,
-                color: Colors.grey,
-              ))
-        ],
-      ),
+      // appBar: AppBar(
+      //   elevation: 0.0,
+      //   backgroundColor: Colors.white,
+      //   // title: Text(
+      //   //   'Today',
+      //   //   style: ToDoStyles.titleHeader,
+      //   // ),
+      //   actions: [
+      //     IconButton(
+      //         onPressed: () {},
+      //         icon: const Icon(
+      //           Icons.more_vert,
+      //           color: Colors.grey,
+      //         ))
+      //   ],
+      // ),
       body: FutureBuilder(
           future: DataHandler.getTasks(),
           builder: (BuildContext context, AsyncSnapshot<List<Task>> snapshot) {
@@ -79,32 +84,126 @@ class _HomeScreenState extends State<HomeScreen> {
               case ConnectionState.done:
                 break;
             }
+
             if (snapshot.hasData) {
+              tasks.clear();
+              overdues.clear();
+              todays.clear();
+              upcomings.clear();
               tasks = snapshot.data!;
-              print(tasks);
+              //filter by input
+              print("Search value: " + searchValue);
+              tasks = filterTask(tasks, searchValue);
+
+              print("Current tasks: " + tasks.toString());
+              print(tasks.length);
+              //filter tasks
+              for (int i = 0; i < tasks.length; i++) {
+                switch (tasks[i].getTaskMode()) {
+                  case 0:
+                    overdues.add(tasks[i]);
+                    break;
+                  case 1:
+                    todays.add(tasks[i]);
+                    break;
+                  case 2:
+                    upcomings.add(tasks[i]);
+                    break;
+                }
+              }
             }
+            print("Overdue: " + overdues.toString());
+            var overdueWidgets = (widget.mode < 1 && overdues.isNotEmpty)
+                ? [
+                    const Divider(),
+                    DateTitle(titles: ['Overdue']),
+                    const Divider(),
+                    ...List.generate(
+                      overdues.length,
+                      (index) => TaskItem(
+                        task: overdues[index],
+                        onFinished: () {
+                          setState(() {
+                            overdues.removeAt(index);
+                          });
+                        },
+                      ),
+                    ),
+                  ]
+                : [];
+            var todayWidgets = (widget.mode < 2 && todays.isNotEmpty)
+                ? [
+                    const Divider(),
+                    DateTitle(titles: ['Today'], isOverDue: false),
+                    const Divider(),
+                    ...List.generate(
+                      todays.length,
+                      (index) => TaskItem(
+                        task: todays[index],
+                        onFinished: () {
+                          setState(() {
+                            todays.removeAt(index);
+                          });
+                        },
+                      ),
+                    ),
+                  ]
+                : [];
+            var upcomingWidgets =
+                ((widget.mode == 2 || widget.mode == 0) && upcomings.isNotEmpty)
+                    ? [
+                        const Divider(),
+                        DateTitle(titles: ['Upcoming'], isOverDue: false),
+                        const Divider(),
+                        ...List.generate(
+                          upcomings.length,
+                          (index) => TaskItem(
+                            task: upcomings[index],
+                            onFinished: () {
+                              setState(() {
+                                upcomings.removeAt(index);
+                              });
+                            },
+                          ),
+                        ),
+                      ]
+                    : [];
+
+            // print(overdues);
             return Container(
                 color: Colors.white,
                 // padding: EdgeInsets.all(16.0),cd
                 child: ListView(
                   children: [
-                    ...List.generate(
-                      tasks.length,
-                      (index) => TaskItem(
-                        task: tasks[index],
-                        onFinished: () {
-                          setState(() {
-                            tasks.removeAt(index);
-                          });
-                        },
+                    TextField(
+                      decoration: InputDecoration(
+                        contentPadding: EdgeInsets.only(left: 4.0, top: 8.0),
+                        suffixIcon: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              searchValue = txtController.text;
+                            });
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.all(2.0),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade500),
+                              borderRadius: BorderRadius.circular(4.0),
+                            ),
+                            child: Icon(Icons.search),
+                          ),
+                        ),
                       ),
+                      onChanged: (value) {
+                        // setState(() {
+                        //   searchValue = value;
+                        // });
+                      },
+                      controller: txtController,
                     ),
-                    Divider(),
-                    // TaskItem(
-                    //   task: Task(taskDateTime: DateTime.now()),
-                    // ),
-                    DateTitle(titles: ['1 Nov', 'Today']),
-                    Divider(),
+                    ...overdueWidgets,
+                    ...todayWidgets,
+                    ...upcomingWidgets,
                   ],
                 ));
           }),
@@ -115,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
               elevation: 4.0,
               context: context,
               builder: (context) {
-                return NewTaskScreen();
+                return const NewTaskScreen();
               });
           if (res != null) {
             setState(() {
@@ -163,27 +262,27 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(
                 width: 50.0,
               ),
-              IconButton(
-                onPressed: () {
-                  displayBottomModal(context, SearchScreen());
-                },
-                iconSize: 27.0,
-                icon: const Icon(
-                  Icons.search,
-                  color: Colors.white,
-                ),
-              ),
-              IconButton(
-                onPressed: () {
-                  // updateTabSelection(3, "Settings");
-                  displayBottomModal(context, NotificationScreen());
-                },
-                iconSize: 27.0,
-                icon: const Icon(
-                  Icons.notifications_none,
-                  color: Colors.white,
-                ),
-              ),
+              // IconButton(
+              //   onPressed: () {
+              //     displayBottomModal(context, SearchScreen());
+              //   },
+              //   iconSize: 27.0,
+              //   icon: const Icon(
+              //     Icons.search,
+              //     color: Colors.white,
+              //   ),
+              // ),
+              // IconButton(
+              //   onPressed: () {
+              //     // updateTabSelection(3, "Settings");
+              //     displayBottomModal(context, NotificationScreen());
+              //   },
+              //   iconSize: 27.0,
+              //   icon: const Icon(
+              //     Icons.notifications_none,
+              //     color: Colors.white,
+              //   ),
+              // ),
             ],
           ),
         ),
@@ -200,9 +299,11 @@ class _HomeScreenState extends State<HomeScreen> {
       title += ' • ${titles[i]}';
     }
 
-    isOverDue = titles.length == 1;
     return ListTile(
-      title: Text(title),
+      title: Text(
+        title,
+        style: ToDoStyles.titleHeader,
+      ),
       trailing: isOverDue
           ? TextButton(
               onPressed: () {},
@@ -212,6 +313,17 @@ class _HomeScreenState extends State<HomeScreen> {
               ))
           : const SizedBox(),
     );
+  }
+
+  List<Task> filterTask(List<Task> source, String value) {
+    List<Task> newTasks = [];
+    for (int i = 0; i < source.length; i++) {
+      Task t = source[i];
+      if (t.taskName.contains(value) || t.description.contains(value)) {
+        newTasks.add(t);
+      }
+    }
+    return newTasks;
   }
 
   void displayBottomModal(BuildContext context, Widget screen) {

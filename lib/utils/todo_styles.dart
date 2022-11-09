@@ -15,12 +15,28 @@ class ToDoStyles {
   static TextStyle titleHeader = const TextStyle(
     color: Colors.black,
     fontWeight: FontWeight.bold,
-    fontSize: 14.0,
+    fontSize: 18.0,
   );
 
   static TextStyle paraText = const TextStyle(
     color: Colors.black,
     fontWeight: FontWeight.normal,
     fontSize: 13,
+  );
+
+  static TextStyle taskTitle = const TextStyle(
+    color: Colors.black,
+    fontWeight: FontWeight.w500,
+    fontSize: 18.0,
+  );
+  static TextStyle taskDescription = TextStyle(
+    color: Colors.grey.shade500,
+    fontWeight: FontWeight.normal,
+    fontSize: 16.0,
+  );
+  static TextStyle taskDateTime = TextStyle(
+    color: Colors.grey.shade500,
+    fontWeight: FontWeight.w500,
+    fontSize: 14.0,
   );
 }

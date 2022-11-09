@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:todoist_clone/models/task.dart';
 import 'package:todoist_clone/utils/data_handler.dart';
+import 'package:todoist_clone/utils/todo_styles.dart';
 
 class TaskItem extends StatefulWidget {
   final Task task;
@@ -15,9 +17,23 @@ class TaskItem extends StatefulWidget {
 class _TaskItemState extends State<TaskItem> {
   bool checked = false;
   bool visible = true;
+  static const Map<String, Color> colors = {
+    'overdue': Colors.grey,
+    'today': Colors.orange,
+    'upcoming': Colors.blue,
+  };
+
   @override
   Widget build(BuildContext context) {
-    print("Task item:" + widget.task.toString());
+    String type = "today";
+    int dateDiff = DateTime.now().compareTo(widget.task.taskDateTime!);
+    if (dateDiff > 0) {
+      type = 'overdue';
+    } else {
+      if (DateTime.now().day < widget.task.taskDateTime!.day) {
+        type = 'upcoming';
+      }
+    }
     return AnimatedOpacity(
       duration: Duration(seconds: 2),
       opacity: visible ? 1.0 : 0,
@@ -28,18 +44,18 @@ class _TaskItemState extends State<TaskItem> {
             width: 15,
             height: 15,
             decoration: BoxDecoration(
-                color: Colors.orange.shade100, shape: BoxShape.circle),
+                color: colors[type]!.withOpacity(0.1), shape: BoxShape.circle),
             child: Checkbox(
               shape: const CircleBorder(),
-              activeColor: Colors.orange,
+              activeColor: colors[type],
               value: checked,
-              side: BorderSide(color: Colors.orange, width: 2.0),
+              side: BorderSide(color: colors[type]!, width: 2.0),
               onChanged: (bool? value) async {
                 print('Value changed: ' + value!.toString());
                 setState(() {
-                  checked = value!;
+                  checked = value;
                 });
-                if (value!) {
+                if (value) {
                   await DataHandler.deleteTask(widget.task);
                   print("remove: " + widget.task.toString());
 
@@ -57,13 +73,25 @@ class _TaskItemState extends State<TaskItem> {
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(widget.task.taskName),
-              Text(widget.task.description),
+              Text(
+                widget.task.taskName,
+                style: ToDoStyles.taskTitle,
+              ),
+              Text(
+                widget.task.description,
+                style: ToDoStyles.taskDescription,
+                maxLines: 2,
+                overflow: TextOverflow.fade,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(widget.task.taskDateTime.toString()),
-                  // Text('aaaaa')
+                  Text(
+                    DateFormat(
+                      'kk:mm dd/MM/yyyy',
+                    ).format(widget.task.taskDateTime!),
+                    style: ToDoStyles.taskDateTime,
+                  ),
                 ],
               )
             ],
